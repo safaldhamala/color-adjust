@@ -1,59 +1,51 @@
 import tkinter as tk
-from tkinter import colorchooser
-from PIL import Image, ImageTk
 
-class ColorAdjuster:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Color to Grayscale Adjuster")
+# Function to update the color of the block based on the current value
+def update_color(value):
+    red_value = int(value)
+    gray_value = 255 - red_value
+    color = f'#{red_value:02x}{gray_value:02x}{gray_value:02x}'  # Convert to hex
+    canvas.itemconfig(block, fill=color)
 
-        # Create a canvas to display the color block
-        self.canvas = tk.Canvas(root, width=300, height=300)
-        self.canvas.pack()
+# Function to handle left and right arrow key events
+def key_press(event):
+    global current_value
+    if event.keysym == 'Right':
+        current_value = min(current_value + 3, 255)  # Increase red (max 255)
+        
+    elif event.keysym == 'Left':
+        current_value = max(current_value - 3, 0)    # Decrease red (min 0)
+    update_color(current_value)
 
-        # Set the initial color
-        self.color = (255, 0, 0)  # Red as an example
-        self.update_canvas()
+# Initialize the main window
+root = tk.Tk()
+root.title("Perception-based Color Adjustment")
 
-        # Add sliders for R, G, B values
-        self.red_slider = tk.Scale(root, from_=0, to=255, orient="horizontal", label="Red", command=self.update_color, length=300)
-        self.red_slider.set(self.color[0])
-        self.red_slider.pack()
+# Create a canvas for the color block
+canvas = tk.Canvas(root, width=600, height=600)
+canvas.grid(row=0, column=0, columnspan=3)
+#canvas.pack()
+canvas.create_text(300, 20, text="Please adjust grayscale", font=("Arial", 16), fill="black", anchor = "n")
 
-        self.green_slider = tk.Scale(root, from_=0, to=255, orient="horizontal", label="Green", command=self.update_color, length=300)
-        self.green_slider.set(self.color[1])
-        self.green_slider.pack()
+# Draw a rectangle (the block) in the canvas
+block = canvas.create_rectangle(100, 60, 500, 350, fill="#ff0000")
 
-        self.blue_slider = tk.Scale(root, from_=0, to=255, orient="horizontal", label="Blue", command=self.update_color, length=300)
-        self.blue_slider.set(self.color[2])
-        self.blue_slider.pack()
+# Set an initial value for the current color (start fully red)
+current_value = 255
 
-        # Add a button to submit the selected color
-        self.submit_button = tk.Button(root, text="Submit", command=self.submit)
-        self.submit_button.pack(pady=15)
+# Bind left and right arrow keys to adjust the color
+root.bind('<Left>', key_press)
+root.bind('<Right>', key_press)
 
-    def update_canvas(self):
-        # Update the color block on the canvas
-        color_hex = "#{:02x}{:02x}{:02x}".format(*self.color)
-        self.canvas.create_rectangle(0, 0, 300, 300, fill=color_hex, outline=color_hex)
+# Less red and more red buttons
+less_red_button = tk.Button(root, text="Less red", command=key_press)
+less_red_button.grid(row=3, column=1)
 
-    def update_color(self, event=None):
-        # Update the color based on the slider values
-        r = self.red_slider.get()
-        g = self.green_slider.get()
-        b = self.blue_slider.get()
-        self.color = (r, g, b)
-        self.update_canvas()
+more_red_button = tk.Button(root, text="More red", command=key_press)
+more_red_button.grid(row=3, column=3)
 
-    def submit(self):
-        # Convert the selected color to grayscale and display it
-        grayscale_value = int(0.3*self.color[0] + 0.59*self.color[1] + 0.11*self.color[2])
-        grayscale_color = (grayscale_value, grayscale_value, grayscale_value)
-        self.color = grayscale_color
-        self.update_canvas()
-        print(f"Selected grayscale value: {grayscale_value}")
+done_button = tk.Button(root, text="Done") #, command=show_color)
+done_button.grid(row=3, column=2)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = ColorAdjuster(root)
-    root.mainloop()
+# Start the Tkinter event loop
+root.mainloop()
